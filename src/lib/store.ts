@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Player, User, OWNER_DISCORD_ID } from './types';
+import { Player, User, OWNER_DISCORD_ID, DEFAULT_GAME_MODES } from './types';
 
 interface AppState {
   currentUser: User | null;
   users: User[];
   players: Player[];
+  gameModes: string[];
   
   // Auth actions
   login: (discordId: string) => void;
@@ -21,6 +22,10 @@ interface AppState {
   
   // User actions
   deleteUser: (id: string) => void;
+  
+  // GameMode actions
+  addGameMode: (gameMode: string) => void;
+  removeGameMode: (gameMode: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -29,12 +34,12 @@ export const useAppStore = create<AppState>()(
       currentUser: null,
       users: [],
       players: [],
+      gameModes: DEFAULT_GAME_MODES,
       
       login: (discordId: string) => {
         const normalizedId = discordId.toLowerCase().trim();
         const isOwner = normalizedId === OWNER_DISCORD_ID.toLowerCase();
         
-        // Check if user exists
         const existingUser = get().users.find(
           u => u.discordId.toLowerCase() === normalizedId
         );
@@ -42,7 +47,6 @@ export const useAppStore = create<AppState>()(
         if (existingUser) {
           set({ currentUser: { ...existingUser, isOwner } });
         } else if (isOwner) {
-          // Auto-create owner account
           const ownerUser: User = {
             id: crypto.randomUUID(),
             discordId: normalizedId,
@@ -110,7 +114,6 @@ export const useAppStore = create<AppState>()(
             if (p.id === id) {
               return { ...p, isFeatured: true, featuredRank: rank };
             }
-            // Remove rank from other players with same rank
             if (p.featuredRank === rank) {
               return { ...p, isFeatured: false, featuredRank: undefined };
             }
@@ -130,6 +133,21 @@ export const useAppStore = create<AppState>()(
       deleteUser: (id) => {
         set(state => ({
           users: state.users.filter(u => u.id !== id)
+        }));
+      },
+      
+      addGameMode: (gameMode: string) => {
+        const trimmed = gameMode.trim();
+        if (!trimmed) return;
+        set(state => {
+          if (state.gameModes.includes(trimmed)) return state;
+          return { gameModes: [...state.gameModes, trimmed] };
+        });
+      },
+      
+      removeGameMode: (gameMode: string) => {
+        set(state => ({
+          gameModes: state.gameModes.filter(gm => gm !== gameMode)
         }));
       }
     }),

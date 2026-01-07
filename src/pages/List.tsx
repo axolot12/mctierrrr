@@ -3,7 +3,7 @@ import { Navbar } from '@/components/Navbar';
 import { PlayerCard } from '@/components/PlayerCard';
 import { GameModeFilter } from '@/components/GameModeFilter';
 import { useAppStore } from '@/lib/store';
-import { GameMode, TIERS } from '@/lib/types';
+import { TIERS } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 
@@ -11,21 +11,23 @@ const PLAYERS_PER_PAGE = 10;
 
 const List = () => {
   const { players } = useAppStore();
-  const [selectedGameMode, setSelectedGameMode] = useState<GameMode | 'all'>('all');
+  const [selectedGameMode, setSelectedGameMode] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   
   const filteredAndSortedPlayers = useMemo(() => {
     let filtered = players;
     
     if (selectedGameMode !== 'all') {
-      filtered = filtered.filter(p => p.gameMode === selectedGameMode);
+      filtered = filtered.filter(p => 
+        p.gameModes.some(gm => gm.gameMode === selectedGameMode)
+      );
     }
     
-    // Sort by tier order: HT1, LT1, HT2, LT2, etc.
+    // Sort by best tier (earliest in TIERS array)
     return filtered.sort((a, b) => {
-      const aIndex = TIERS.indexOf(a.tier);
-      const bIndex = TIERS.indexOf(b.tier);
-      return aIndex - bIndex;
+      const aBestTier = Math.min(...a.gameModes.map(gm => TIERS.indexOf(gm.tier)));
+      const bBestTier = Math.min(...b.gameModes.map(gm => TIERS.indexOf(gm.tier)));
+      return aBestTier - bBestTier;
     });
   }, [players, selectedGameMode]);
   
@@ -111,17 +113,29 @@ const List = () => {
             </Button>
             
             <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={page === currentPage ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handlePageChange(page)}
-                  className="minecraft-button w-8 h-8 p-0"
-                >
-                  {page}
-                </Button>
-              ))}
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let page: number;
+                if (totalPages <= 5) {
+                  page = i + 1;
+                } else if (currentPage <= 3) {
+                  page = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  page = totalPages - 4 + i;
+                } else {
+                  page = currentPage - 2 + i;
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    className="minecraft-button w-8 h-8 p-0"
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
             </div>
             
             <Button
