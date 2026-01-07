@@ -150,6 +150,18 @@ const List = () => {
           </div>
         )}
       </main>
+      
+      {/* Footer */}
+      <footer className="py-8 border-t border-border mt-8">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Made by <span className="text-primary font-medium">Confession Team</span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Not affiliated with Mojang or Microsoft.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
