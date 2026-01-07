@@ -35,6 +35,8 @@ const Admin = () => {
   const [currentGameMode, setCurrentGameMode] = useState('');
   const [currentTier, setCurrentTier] = useState<Tier>('HT1');
   const [isTested, setIsTested] = useState(true);
+  const [premiumError, setPremiumError] = useState('');
+  const [isCheckingPremium, setIsCheckingPremium] = useState(false);
   
   // GameMode form state
   const [newGameMode, setNewGameMode] = useState('');
@@ -52,10 +54,28 @@ const Admin = () => {
     return <Navigate to="/" replace />;
   }
   
-  const fetchSkin = () => {
+  const fetchSkin = async () => {
     if (!username.trim()) return;
+    setPremiumError('');
+    
     if (isPremium) {
-      setSkinUrl(`https://mc-heads.net/avatar/${username}/128`);
+      setIsCheckingPremium(true);
+      try {
+        // Check if premium account exists using Mojang API
+        const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+        if (response.ok) {
+          setSkinUrl(`https://mc-heads.net/avatar/${username}/128`);
+          setPremiumError('');
+        } else {
+          setSkinUrl('');
+          setPremiumError('No premium account found with this username');
+        }
+      } catch {
+        setSkinUrl('');
+        setPremiumError('Error checking account. Try again.');
+      } finally {
+        setIsCheckingPremium(false);
+      }
     } else {
       setSkinUrl(`https://mc-heads.net/avatar/${nonPremiumSkin}/128`);
     }
@@ -64,12 +84,10 @@ const Admin = () => {
   // Auto-update skin when premium status or skin type changes
   const handlePremiumChange = (premium: boolean) => {
     setIsPremium(premium);
+    setPremiumError('');
+    setSkinUrl('');
     if (!premium) {
       setSkinUrl(`https://mc-heads.net/avatar/${nonPremiumSkin}/128`);
-    } else if (username.trim()) {
-      setSkinUrl(`https://mc-heads.net/avatar/${username}/128`);
-    } else {
-      setSkinUrl('');
     }
   };
 
@@ -77,6 +95,14 @@ const Admin = () => {
     setNonPremiumSkin(skin);
     if (!isPremium) {
       setSkinUrl(`https://mc-heads.net/avatar/${skin}/128`);
+    }
+  };
+
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
+    setPremiumError('');
+    if (isPremium) {
+      setSkinUrl(''); // Clear skin until verified
     }
   };
   
@@ -93,7 +119,27 @@ const Admin = () => {
     setSelectedGameModes(selectedGameModes.filter(gm => gm.gameMode !== gameMode));
   };
   
-  const handleAddPlayer = (e: React.FormEvent) => {
+  const handleAddPlayer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim() || selectedGameModes.length === 0) return;
+    
+    // For premium accounts, verify the account exists first
+    if (isPremium) {
+      setIsCheckingPremium(true);
+      try {
+        const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+        if (!response.ok) {
+          setPremiumError('No premium account found with this username');
+          setIsCheckingPremium(false);
+          return;
+        }
+      } catch {
+        setPremiumError('Error checking account. Try again.');
+        setIsCheckingPremium(false);
+        return;
+      }
+      setIsCheckingPremium(false);
+    }
     e.preventDefault();
     if (!username.trim() || selectedGameModes.length === 0) return;
     
@@ -270,7 +316,7 @@ const Admin = () => {
                         <Input
                           id="username"
                           value={username}
-                          onChange={(e) => setUsername(e.target.value)}
+                          onChange={(e) => handleUsernameChange(e.target.value)}
                           placeholder={isPremium ? "Enter premium username" : "Enter player name"}
                           className="minecraft-border bg-secondary/50"
                         />
@@ -278,13 +324,16 @@ const Admin = () => {
                           <Button 
                             type="button" 
                             onClick={fetchSkin}
-                            disabled={!username.trim()}
+                            disabled={!username.trim() || isCheckingPremium}
                             className="minecraft-button"
                           >
-                            Fetch
+                            {isCheckingPremium ? 'Checking...' : 'Fetch'}
                           </Button>
                         )}
                       </div>
+                      {premiumError && (
+                        <p className="text-sm text-destructive mt-1">{premiumError}</p>
+                      )}
                     </div>
                     
                     {/* Game Mode Selection */}
@@ -401,11 +450,11 @@ const Admin = () => {
                 
                 <Button 
                   type="submit" 
-                  disabled={!username.trim() || selectedGameModes.length === 0}
+                  disabled={!username.trim() || selectedGameModes.length === 0 || isCheckingPremium || (isPremium && premiumError !== '')}
                   className="w-full minecraft-button"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Player
+                  {isCheckingPremium ? 'Checking Account...' : 'Add Player'}
                 </Button>
               </form>
             </div>
