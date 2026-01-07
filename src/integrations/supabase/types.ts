@@ -14,7 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_modes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      players: {
+        Row: {
+          created_at: string
+          featured_rank: number | null
+          game_modes: Json
+          id: string
+          is_featured: boolean
+          is_premium: boolean
+          is_tested: boolean
+          skin_url: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          featured_rank?: number | null
+          game_modes?: Json
+          id?: string
+          is_featured?: boolean
+          is_premium?: boolean
+          is_tested?: boolean
+          skin_url: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          featured_rank?: number | null
+          game_modes?: Json
+          id?: string
+          is_featured?: boolean
+          is_premium?: boolean
+          is_tested?: boolean
+          skin_url?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          discord_id: string
+          id: string
+          is_owner: boolean
+        }
+        Insert: {
+          created_at?: string
+          discord_id: string
+          id?: string
+          is_owner?: boolean
+        }
+        Update: {
+          created_at?: string
+          discord_id?: string
+          id?: string
+          is_owner?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
