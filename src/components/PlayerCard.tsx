@@ -12,12 +12,16 @@ interface PlayerCardProps {
 
 export const PlayerCard = ({ player, showRank, rank }: PlayerCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const primaryGameMode = player.gameModes[0];
-  const isHT = primaryGameMode?.tier.startsWith('HT');
+  
+  // Safely get game modes with fallback
+  const gameModes = player.gameModes || [];
+  const primaryGameMode = gameModes[0];
+  const isHT = primaryGameMode?.tier?.startsWith('HT') ?? false;
+  const isPremium = player.isPremium ?? true;
   
   // Get the skin source based on premium status
   const getSkinSource = (size: number, type: 'avatar' | 'body' = 'avatar') => {
-    const skinName = player.isPremium ? player.username : 'steve';
+    const skinName = isPremium ? player.username : 'steve';
     return `https://mc-heads.net/${type}/${skinName}/${size}`;
   };
   
@@ -46,7 +50,7 @@ export const PlayerCard = ({ player, showRank, rank }: PlayerCardProps) => {
                   (e.target as HTMLImageElement).src = `https://mc-heads.net/avatar/steve/64`;
                 }}
               />
-              {player.isPremium && (
+              {isPremium && (
                 <div className="absolute -top-1 -right-1 w-5 h-5 bg-gold rounded-full flex items-center justify-center">
                   <Crown className="w-3 h-3 text-primary-foreground" />
                 </div>
@@ -58,7 +62,7 @@ export const PlayerCard = ({ player, showRank, rank }: PlayerCardProps) => {
                 {player.username}
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
-                {player.gameModes.length} game mode{player.gameModes.length !== 1 ? 's' : ''}
+                {gameModes.length} game mode{gameModes.length !== 1 ? 's' : ''}
               </p>
             </div>
             
@@ -112,7 +116,7 @@ export const PlayerCard = ({ player, showRank, rank }: PlayerCardProps) => {
                   }}
                 />
                 <div className="flex items-center gap-1 mt-2">
-                  {player.isPremium ? (
+                  {isPremium ? (
                     <Badge variant="default" className="text-xs">
                       <Crown className="w-3 h-3 mr-1" />
                       Premium
@@ -128,26 +132,30 @@ export const PlayerCard = ({ player, showRank, rank }: PlayerCardProps) => {
               {/* Game Modes Grid */}
               <div className="flex-1">
                 <h4 className="text-sm font-medium text-foreground mb-3">Game Modes & Tiers</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {player.gameModes.map((gm, idx) => {
-                    const isHTier = gm.tier.startsWith('HT');
-                    return (
-                      <div 
-                        key={idx}
-                        className="flex items-center justify-between p-2 bg-secondary/50 rounded-sm"
-                      >
-                        <span className="text-xs text-foreground truncate">{gm.gameMode}</span>
-                        <Badge 
-                          className={`font-minecraft text-[10px] px-1.5 py-0.5 ${
-                            isHTier ? 'tier-badge-ht' : 'tier-badge-lt'
-                          }`}
+                {gameModes.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {gameModes.map((gm, idx) => {
+                      const isHTier = gm.tier?.startsWith('HT') ?? false;
+                      return (
+                        <div 
+                          key={idx}
+                          className="flex items-center justify-between p-2 bg-secondary/50 rounded-sm"
                         >
-                          {gm.tier}
-                        </Badge>
-                      </div>
-                    );
-                  })}
-                </div>
+                          <span className="text-xs text-foreground truncate">{gm.gameMode}</span>
+                          <Badge 
+                            className={`font-minecraft text-[10px] px-1.5 py-0.5 ${
+                              isHTier ? 'tier-badge-ht' : 'tier-badge-lt'
+                            }`}
+                          >
+                            {gm.tier}
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No game modes assigned</p>
+                )}
               </div>
             </div>
           </div>

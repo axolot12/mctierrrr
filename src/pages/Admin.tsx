@@ -433,10 +433,13 @@ const Admin = () => {
               
               {paginatedPlayers.length > 0 ? (
                 <div className="space-y-3">
-                  {paginatedPlayers.map((player) => (
+                {paginatedPlayers.map((player) => {
+                    const playerGameModes = player.gameModes || [];
+                    const playerIsPremium = player.isPremium ?? true;
+                    return (
                     <div key={player.id} className="flex items-center gap-4 p-4 bg-secondary/30 rounded-sm">
                       <img
-                        src={`https://mc-heads.net/avatar/${player.isPremium ? player.username : 'steve'}/48`}
+                        src={`https://mc-heads.net/avatar/${playerIsPremium ? player.username : 'steve'}/48`}
                         alt={player.username}
                         className="w-12 h-12 pixelated"
                       />
@@ -450,7 +453,7 @@ const Admin = () => {
                               className="minecraft-border bg-secondary/50 mb-2"
                             />
                             <div className="flex flex-wrap gap-1">
-                              {editingPlayer.gameModes.map((gm, idx) => (
+                              {(editingPlayer.gameModes || []).map((gm, idx) => (
                                 <Badge key={idx} variant="secondary" className="text-xs">
                                   {gm.gameMode}: {gm.tier}
                                 </Badge>
@@ -471,17 +474,17 @@ const Admin = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <p className="font-medium text-foreground">{player.username}</p>
-                              {player.isPremium && <Crown className="w-3 h-3 text-gold" />}
+                              {playerIsPremium && <Crown className="w-3 h-3 text-gold" />}
                             </div>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {player.gameModes.slice(0, 3).map((gm, idx) => (
+                              {playerGameModes.slice(0, 3).map((gm, idx) => (
                                 <Badge key={idx} variant="secondary" className="text-[10px]">
                                   {gm.gameMode}: {gm.tier}
                                 </Badge>
                               ))}
-                              {player.gameModes.length > 3 && (
+                              {playerGameModes.length > 3 && (
                                 <Badge variant="outline" className="text-[10px]">
-                                  +{player.gameModes.length - 3} more
+                                  +{playerGameModes.length - 3} more
                                 </Badge>
                               )}
                             </div>
@@ -514,7 +517,7 @@ const Admin = () => {
                         </>
                       )}
                     </div>
-                  ))}
+                  );})}
                 </div>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
