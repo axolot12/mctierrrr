@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Player } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, XCircle, ChevronDown, ChevronUp, Crown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface PlayerCardProps {
@@ -14,6 +14,12 @@ export const PlayerCard = ({ player, showRank, rank }: PlayerCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const primaryGameMode = player.gameModes[0];
   const isHT = primaryGameMode?.tier.startsWith('HT');
+  
+  // Get the skin source based on premium status
+  const getSkinSource = (size: number, type: 'avatar' | 'body' = 'avatar') => {
+    const skinName = player.isPremium ? player.username : 'steve';
+    return `https://mc-heads.net/${type}/${skinName}/${size}`;
+  };
   
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -33,13 +39,18 @@ export const PlayerCard = ({ player, showRank, rank }: PlayerCardProps) => {
             
             <div className="relative">
               <img
-                src={`https://mc-heads.net/avatar/${player.username}/64`}
+                src={getSkinSource(64, 'avatar')}
                 alt={player.username}
                 className="w-16 h-16 pixelated rounded-sm group-hover:scale-110 transition-transform"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = `https://mc-heads.net/avatar/steve/64`;
                 }}
               />
+              {player.isPremium && (
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gold rounded-full flex items-center justify-center">
+                  <Crown className="w-3 h-3 text-primary-foreground" />
+                </div>
+              )}
             </div>
             
             <div className="flex-1 min-w-0 text-left">
@@ -88,19 +99,30 @@ export const PlayerCard = ({ player, showRank, rank }: PlayerCardProps) => {
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <div className="px-4 pb-4 border-t border-border pt-4 animate-fade-in">
+          <div className="px-4 pb-4 border-t border-border pt-4">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Full Body Skin */}
               <div className="flex flex-col items-center">
                 <img
-                  src={`https://mc-heads.net/body/${player.username}/150`}
+                  src={getSkinSource(150, 'body')}
                   alt={`${player.username} full skin`}
                   className="pixelated h-[200px] object-contain"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = `https://mc-heads.net/body/steve/150`;
                   }}
                 />
-                <p className="text-xs text-muted-foreground mt-2">Full Skin View</p>
+                <div className="flex items-center gap-1 mt-2">
+                  {player.isPremium ? (
+                    <Badge variant="default" className="text-xs">
+                      <Crown className="w-3 h-3 mr-1" />
+                      Premium
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="text-xs">
+                      Non-Premium
+                    </Badge>
+                  )}
+                </div>
               </div>
               
               {/* Game Modes Grid */}
