@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
-import { Logo } from '@/components/Logo';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TIERS, Tier, PlayerGameMode, Player } from '@/lib/types';
 import { 
   Plus, Users, Search, Edit, Trash2, Save, X, 
-  Star, ChevronLeft, ChevronRight, Download, Gamepad2, Settings
+  Star, ChevronLeft, ChevronRight, Gamepad2, Settings, Crown
 } from 'lucide-react';
 
 const USERS_PER_PAGE = 10;
@@ -28,12 +28,13 @@ const Admin = () => {
   
   // Player form state
   const [username, setUsername] = useState('');
+  const [isPremium, setIsPremium] = useState(true);
+  const [nonPremiumSkin, setNonPremiumSkin] = useState<'steve' | 'alex'>('steve');
   const [skinUrl, setSkinUrl] = useState('');
   const [selectedGameModes, setSelectedGameModes] = useState<PlayerGameMode[]>([]);
   const [currentGameMode, setCurrentGameMode] = useState('');
   const [currentTier, setCurrentTier] = useState<Tier>('HT1');
   const [isTested, setIsTested] = useState(true);
-  const [isFetching, setIsFetching] = useState(false);
   
   // GameMode form state
   const [newGameMode, setNewGameMode] = useState('');
@@ -51,12 +52,32 @@ const Admin = () => {
     return <Navigate to="/" replace />;
   }
   
-  const fetchSkin = async () => {
+  const fetchSkin = () => {
     if (!username.trim()) return;
-    setIsFetching(true);
-    const url = `https://mc-heads.net/avatar/${username}/128`;
-    setSkinUrl(url);
-    setIsFetching(false);
+    if (isPremium) {
+      setSkinUrl(`https://mc-heads.net/avatar/${username}/128`);
+    } else {
+      setSkinUrl(`https://mc-heads.net/avatar/${nonPremiumSkin}/128`);
+    }
+  };
+
+  // Auto-update skin when premium status or skin type changes
+  const handlePremiumChange = (premium: boolean) => {
+    setIsPremium(premium);
+    if (!premium) {
+      setSkinUrl(`https://mc-heads.net/avatar/${nonPremiumSkin}/128`);
+    } else if (username.trim()) {
+      setSkinUrl(`https://mc-heads.net/avatar/${username}/128`);
+    } else {
+      setSkinUrl('');
+    }
+  };
+
+  const handleNonPremiumSkinChange = (skin: 'steve' | 'alex') => {
+    setNonPremiumSkin(skin);
+    if (!isPremium) {
+      setSkinUrl(`https://mc-heads.net/avatar/${skin}/128`);
+    }
   };
   
   const addGameModeToPlayer = () => {
@@ -74,11 +95,16 @@ const Admin = () => {
   
   const handleAddPlayer = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !skinUrl || selectedGameModes.length === 0) return;
+    if (!username.trim() || selectedGameModes.length === 0) return;
+    
+    const finalSkinUrl = isPremium 
+      ? `https://mc-heads.net/avatar/${username}/128`
+      : `https://mc-heads.net/avatar/${nonPremiumSkin}/128`;
     
     addPlayer({
       username: username.trim(),
-      skinUrl,
+      skinUrl: finalSkinUrl,
+      isPremium,
       gameModes: selectedGameModes,
       isTested,
       isFeatured: false
@@ -88,6 +114,7 @@ const Admin = () => {
     setSkinUrl('');
     setSelectedGameModes([]);
     setIsTested(true);
+    setIsPremium(true);
   };
   
   const handleUpdatePlayer = () => {
@@ -176,24 +203,87 @@ const Admin = () => {
               <form onSubmit={handleAddPlayer} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
+                    {/* Premium Account Toggle */}
+                    <div className="p-4 bg-secondary/30 rounded-sm space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Crown className="w-4 h-4 text-gold" />
+                        <Label className="font-medium">Premium Account?</Label>
+                      </div>
+                      <RadioGroup 
+                        value={isPremium ? 'yes' : 'no'} 
+                        onValueChange={(v) => handlePremiumChange(v === 'yes')}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="premium-yes" />
+                          <Label htmlFor="premium-yes">Yes (Fetch Skin)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="premium-no" />
+                          <Label htmlFor="premium-no">No (Steve/Alex)</Label>
+                        </div>
+                      </RadioGroup>
+                      
+                      {!isPremium && (
+                        <div className="flex gap-4 mt-2">
+                          <button
+                            type="button"
+                            onClick={() => handleNonPremiumSkinChange('steve')}
+                            className={`p-2 rounded-sm border-2 transition-all ${
+                              nonPremiumSkin === 'steve' 
+                                ? 'border-primary bg-primary/20' 
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                          >
+                            <img 
+                              src="https://mc-heads.net/avatar/steve/48" 
+                              alt="Steve" 
+                              className="w-12 h-12 pixelated"
+                            />
+                            <span className="text-xs text-center block mt-1">Steve</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleNonPremiumSkinChange('alex')}
+                            className={`p-2 rounded-sm border-2 transition-all ${
+                              nonPremiumSkin === 'alex' 
+                                ? 'border-primary bg-primary/20' 
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                          >
+                            <img 
+                              src="https://mc-heads.net/avatar/alex/48" 
+                              alt="Alex" 
+                              className="w-12 h-12 pixelated"
+                            />
+                            <span className="text-xs text-center block mt-1">Alex</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     <div>
-                      <Label htmlFor="username">Minecraft Username</Label>
+                      <Label htmlFor="username">
+                        {isPremium ? 'Minecraft Username (Premium)' : 'Player Name'}
+                      </Label>
                       <div className="flex gap-2 mt-2">
                         <Input
                           id="username"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          placeholder="Enter username"
+                          placeholder={isPremium ? "Enter premium username" : "Enter player name"}
                           className="minecraft-border bg-secondary/50"
                         />
-                        <Button 
-                          type="button" 
-                          onClick={fetchSkin}
-                          disabled={isFetching || !username.trim()}
-                          className="minecraft-button"
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
+                        {isPremium && (
+                          <Button 
+                            type="button" 
+                            onClick={fetchSkin}
+                            disabled={!username.trim()}
+                            className="minecraft-button"
+                          >
+                            Fetch
+                          </Button>
+                        )}
                       </div>
                     </div>
                     
@@ -272,15 +362,29 @@ const Admin = () => {
                   
                   {/* Preview */}
                   <div className="flex flex-col items-center justify-center p-6 bg-secondary/30 rounded-sm">
-                    {skinUrl ? (
+                    {(skinUrl || !isPremium) ? (
                       <div className="text-center">
                         <img
-                          src={`https://mc-heads.net/body/${username}/150`}
-                          alt={username}
+                          src={`https://mc-heads.net/body/${isPremium ? username || 'steve' : nonPremiumSkin}/150`}
+                          alt={username || nonPremiumSkin}
                           className="pixelated mx-auto mb-4 h-[180px]"
                         />
-                        <p className="font-minecraft text-sm text-foreground">{username}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="font-minecraft text-sm text-foreground">
+                          {username || (isPremium ? 'Enter username' : nonPremiumSkin)}
+                        </p>
+                        <div className="flex items-center justify-center gap-1 mt-1">
+                          {isPremium ? (
+                            <Badge variant="default" className="text-xs">
+                              <Crown className="w-3 h-3 mr-1" />
+                              Premium
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">
+                              Non-Premium
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
                           {selectedGameModes.length} game mode(s)
                         </p>
                       </div>
@@ -297,7 +401,7 @@ const Admin = () => {
                 
                 <Button 
                   type="submit" 
-                  disabled={!username.trim() || !skinUrl || selectedGameModes.length === 0}
+                  disabled={!username.trim() || selectedGameModes.length === 0}
                   className="w-full minecraft-button"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -332,7 +436,7 @@ const Admin = () => {
                   {paginatedPlayers.map((player) => (
                     <div key={player.id} className="flex items-center gap-4 p-4 bg-secondary/30 rounded-sm">
                       <img
-                        src={`https://mc-heads.net/avatar/${player.username}/48`}
+                        src={`https://mc-heads.net/avatar/${player.isPremium ? player.username : 'steve'}/48`}
                         alt={player.username}
                         className="w-12 h-12 pixelated"
                       />
@@ -365,7 +469,10 @@ const Admin = () => {
                       ) : (
                         <>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-foreground">{player.username}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-foreground">{player.username}</p>
+                              {player.isPremium && <Crown className="w-3 h-3 text-gold" />}
+                            </div>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {player.gameModes.slice(0, 3).map((gm, idx) => (
                                 <Badge key={idx} variant="secondary" className="text-[10px]">

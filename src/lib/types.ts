@@ -9,6 +9,7 @@ export interface Player {
   id: string;
   username: string;
   skinUrl: string;
+  isPremium: boolean;
   gameModes: PlayerGameMode[];
   isTested: boolean;
   isFeatured: boolean;
