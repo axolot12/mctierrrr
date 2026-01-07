@@ -126,7 +126,10 @@ const Index = () => {
       <footer className="py-8 border-t border-border">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 MCTiers. Not affiliated with Mojang or Microsoft.
+            Made by <span className="text-primary font-medium">Confession Team</span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Not affiliated with Mojang or Microsoft.
           </p>
         </div>
       </footer>
