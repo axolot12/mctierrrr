@@ -1,25 +1,15 @@
 export type Tier = 'HT1' | 'LT1' | 'HT2' | 'LT2' | 'HT3' | 'LT3' | 'HT4' | 'LT4' | 'HT5' | 'LT5';
 
-export type GameMode = 
-  | 'SMP'
-  | 'Lifesteal'
-  | 'Practice'
-  | 'Bedwars'
-  | 'Skywars'
-  | 'UHC'
-  | 'Survival Games'
-  | 'Crystal PvP'
-  | 'Pot PvP'
-  | 'Sword'
-  | 'Axe'
-  | 'Netherite Pot';
+export interface PlayerGameMode {
+  gameMode: string;
+  tier: Tier;
+}
 
 export interface Player {
   id: string;
   username: string;
   skinUrl: string;
-  tier: Tier;
-  gameMode: GameMode;
+  gameModes: PlayerGameMode[];
   isTested: boolean;
   isFeatured: boolean;
   featuredRank?: 1 | 2 | 3;
@@ -35,7 +25,7 @@ export interface User {
 
 export const TIERS: Tier[] = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5'];
 
-export const GAME_MODES: GameMode[] = [
+export const DEFAULT_GAME_MODES: string[] = [
   'SMP',
   'Lifesteal',
   'Practice',

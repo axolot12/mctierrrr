@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/Logo';
 import { Home, List, Shield, LogOut, User } from 'lucide-react';
 
 export const Navbar = () => {
@@ -14,13 +15,8 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center minecraft-button">
-              <span className="font-minecraft text-primary-foreground text-xs">MC</span>
-            </div>
-            <span className="font-minecraft text-sm text-gradient-emerald hidden sm:block">
-              MCTIERS
-            </span>
+          <Link to="/" className="hover:opacity-80 transition-opacity">
+            <Logo size="sm" />
           </Link>
           
           {/* Navigation Links */}

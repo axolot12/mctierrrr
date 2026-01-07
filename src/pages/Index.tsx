@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
 import { PlayerCard } from '@/components/PlayerCard';
+import { Logo } from '@/components/Logo';
 import { useAppStore } from '@/lib/store';
 import { Sword, Trophy, Sparkles } from 'lucide-react';
 
@@ -42,9 +43,9 @@ const Index = () => {
               <span className="text-sm text-primary font-medium">Minecraft PvP Tier Rankings</span>
             </div>
             
-            <h1 className="font-minecraft text-3xl md:text-4xl lg:text-5xl text-foreground mb-4">
-              <span className="text-gradient-emerald">MC</span>TIERS
-            </h1>
+            <div className="flex justify-center mb-6">
+              <Logo size="lg" />
+            </div>
             
             <p className="text-muted-foreground max-w-xl mx-auto mb-8">
               Search for any Minecraft player to see their PvP tier ranking and stats.
@@ -63,7 +64,7 @@ const Index = () => {
           {searched && (
             <div className="max-w-md mx-auto mb-12">
               {searchResult ? (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="animate-fade-in">
                   <PlayerCard player={searchResult} />
                 </div>
               ) : (
